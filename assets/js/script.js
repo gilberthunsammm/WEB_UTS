@@ -196,6 +196,7 @@
   const drawerClose   = document.getElementById('drawerClose');
 
   // Elements populated by JS
+  const dImgCover     = document.getElementById('dImgCover');
   const dCover        = document.getElementById('dCover');
   const dCoverEyebrow = document.getElementById('dCoverEyebrow');
   const dCoverTitle   = document.getElementById('dCoverTitle');
@@ -209,7 +210,18 @@
   function openDrawer(data) {
     if (!drawer || !backdrop) return;
 
-    // Set cover palette
+    // Set cover palette or real image
+    if (dImgCover) {
+      if (data.cover) {
+        dImgCover.src = data.cover;
+        dImgCover.style.display = 'block';
+        if (dCover) dCover.style.display = 'none';
+      } else {
+        dImgCover.style.display = 'none';
+        if (dCover) dCover.style.display = 'flex';
+      }
+    }
+
     if (dCover) {
       dCover.className = 'drawer-cover-art palette-' + (data.palette || '1') + ' cover-title-art';
     }
@@ -221,6 +233,59 @@
     if (dTitle)         dTitle.textContent         = data.title    || '';
     if (dAuthor)        dAuthor.textContent        = data.author   || '';
     if (dCategory)      dCategory.textContent      = data.category || '';
+
+    // Metadata tambahan (Penerbit, Tahun, Halaman, ISBN, Sinopsis)
+    const dPublisherRow = document.getElementById('dPublisherRow');
+    const dPublisher    = document.getElementById('dPublisher');
+    const dYearRow      = document.getElementById('dYearRow');
+    const dYear         = document.getElementById('dYear');
+    const dPagesRow     = document.getElementById('dPagesRow');
+    const dPages        = document.getElementById('dPages');
+    const dIsbnRow      = document.getElementById('dIsbnRow');
+    const dIsbn         = document.getElementById('dIsbn');
+    const dDescWrap     = document.getElementById('dDescWrap');
+    const dDesc         = document.getElementById('dDesc');
+
+    if (dPublisherRow && dPublisher) {
+      if (data.publisher) {
+        dPublisher.textContent = data.publisher;
+        dPublisherRow.style.display = 'grid';
+      } else {
+        dPublisherRow.style.display = 'none';
+      }
+    }
+    if (dYearRow && dYear) {
+      if (data.year) {
+        dYear.textContent = data.year;
+        dYearRow.style.display = 'grid';
+      } else {
+        dYearRow.style.display = 'none';
+      }
+    }
+    if (dPagesRow && dPages) {
+      if (data.pages && data.pages !== '0') {
+        dPages.textContent = data.pages + ' hlm';
+        dPagesRow.style.display = 'grid';
+      } else {
+        dPagesRow.style.display = 'none';
+      }
+    }
+    if (dIsbnRow && dIsbn) {
+      if (data.isbn) {
+        dIsbn.textContent = data.isbn;
+        dIsbnRow.style.display = 'grid';
+      } else {
+        dIsbnRow.style.display = 'none';
+      }
+    }
+    if (dDescWrap && dDesc) {
+      if (data.description) {
+        dDesc.innerHTML = data.description;
+        dDescWrap.style.display = 'block';
+      } else {
+        dDescWrap.style.display = 'none';
+      }
+    }
 
     // Status badge
     if (dStatus) {
@@ -269,13 +334,20 @@
   document.querySelectorAll('.btn-quick-view').forEach(function (btn) {
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
+      if (!btn.dataset.bookId) return;
       openDrawer({
-        bookId:   btn.dataset.bookId,
-        title:    btn.dataset.title,
-        author:   btn.dataset.author,
-        category: btn.dataset.category,
-        status:   btn.dataset.status,
-        palette:  btn.dataset.palette,
+        bookId:      btn.dataset.bookId,
+        title:       btn.dataset.title,
+        author:      btn.dataset.author,
+        category:    btn.dataset.category,
+        status:      btn.dataset.status,
+        palette:     btn.dataset.palette,
+        cover:       btn.dataset.cover || '',
+        description: btn.dataset.description || '',
+        publisher:   btn.dataset.publisher || '',
+        year:        btn.dataset.year || '',
+        pages:       btn.dataset.pages || '',
+        isbn:        btn.dataset.isbn || '',
       });
     });
   });

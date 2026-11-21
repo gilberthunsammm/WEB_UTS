@@ -1,0 +1,10 @@
+<?php
+
+/**
+ * Konfigurasi Lokal Google Books API Key
+ * Salin file ini menjadi 'google-books.local.php' dan masukkan API key Anda.
+ * Dapatkan API Key gratis di: https://console.cloud.google.com/apis/credentials
+ */
+return [
+    'api_key' => '', // Masukkan API Key Google Books Anda di sini
+];

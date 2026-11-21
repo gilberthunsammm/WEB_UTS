@@ -1,0 +1,14 @@
+# Environment & Local API Keys
+config/google-books.local.php
+.env
+
+# Cache & Temporary Files
+data/cache/*
+!data/cache/.gitkeep
+test_*.php
+diagnose_*.php
+
+# OS metadata
+Thumbs.db
+Desktop.ini
+.DS_Store

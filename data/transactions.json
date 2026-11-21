@@ -3,7 +3,7 @@
         "id": 1,
         "memberId": 1,
         "bookId": 1,
-        "bookTitle": "Dasar Pemrograman Web",
+        "bookTitle": "Atomic Habits",
         "borrowDate": "2026-11-21",
         "status": "Dikembalikan"
     },
@@ -11,7 +11,7 @@
         "id": 2,
         "memberId": 1,
         "bookId": 2,
-        "bookTitle": "Pengantar Kecerdasan Buatan",
+        "bookTitle": "The Psychology of Money",
         "borrowDate": "2026-11-21",
         "status": "Dikembalikan"
     },
@@ -19,7 +19,31 @@
         "id": 3,
         "memberId": 1,
         "bookId": 3,
-        "bookTitle": "Dasar UI\/UX Design",
+        "bookTitle": "Sapiens: A Brief History of Humankind",
+        "borrowDate": "2026-11-21",
+        "status": "Dipinjam"
+    },
+    {
+        "id": 4,
+        "memberId": 1,
+        "bookId": 4,
+        "bookTitle": "Clean Code",
+        "borrowDate": "2026-11-21",
+        "status": "Dikembalikan"
+    },
+    {
+        "id": 5,
+        "memberId": 2,
+        "bookId": 4,
+        "bookTitle": "Clean Code",
+        "borrowDate": "2026-11-21",
+        "status": "Dikembalikan"
+    },
+    {
+        "id": 6,
+        "memberId": 2,
+        "bookId": 1,
+        "bookTitle": "Atomic Habits",
         "borrowDate": "2026-11-21",
         "status": "Dipinjam"
     }

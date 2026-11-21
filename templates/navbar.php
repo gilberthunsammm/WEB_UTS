@@ -28,6 +28,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <a href="index.php#katalog" class="nav-link">
                 Katalog E-Book
             </a>
+            <a href="discover.php" class="nav-link <?= $currentPage === 'discover.php' ? 'active' : '' ?>">
+                Eksplorasi Buku
+            </a>
 
             <?php if (isset($_SESSION['user'])): ?>
                 <a href="dashboard.php" class="nav-link <?= $currentPage === 'dashboard.php' ? 'active' : '' ?>">
@@ -72,6 +75,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             </a>
             <a href="index.php#katalog" class="nav-link">
                 Katalog E-Book
+            </a>
+            <a href="discover.php" class="nav-link <?= $currentPage === 'discover.php' ? 'active' : '' ?>">
+                Eksplorasi Buku
             </a>
 
             <?php if (isset($_SESSION['user'])): ?>

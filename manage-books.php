@@ -29,12 +29,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ids   = array_map(fn($book) => $book->getId(), $books);
         $newId = empty($ids) ? 1 : max($ids) + 1;
 
-        $title    = trim($_POST['title'] ?? '');
-        $author   = trim($_POST['author'] ?? '');
-        $category = trim($_POST['category'] ?? '');
+        $title      = trim($_POST['title'] ?? '');
+        $author     = trim($_POST['author'] ?? '');
+        $category   = trim($_POST['category'] ?? '');
+        $coverImage = trim($_POST['coverImage'] ?? '');
+        $isbn       = trim($_POST['isbn'] ?? '');
 
         if ($title !== '' && $author !== '' && $category !== '') {
-            $book = new Book($newId, $title, $author, $category, 'Tersedia');
+            $book = new Book(
+                $newId,
+                $title,
+                $author,
+                $category,
+                'Tersedia',
+                $coverImage,
+                '',
+                $isbn
+            );
             $service->add($book);
             header('Location: manage-books.php?status=added');
             exit;
@@ -43,11 +54,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // PROSES EDIT BUKU
     if ($action === 'update') {
-        $id       = (int) ($_POST['id'] ?? 0);
-        $title    = trim($_POST['title'] ?? '');
-        $author   = trim($_POST['author'] ?? '');
-        $category = trim($_POST['category'] ?? '');
-        $status   = $_POST['status'] ?? '';
+        $id         = (int) ($_POST['id'] ?? 0);
+        $title      = trim($_POST['title'] ?? '');
+        $author     = trim($_POST['author'] ?? '');
+        $category   = trim($_POST['category'] ?? '');
+        $status     = $_POST['status'] ?? '';
+        $coverImage = trim($_POST['coverImage'] ?? '');
+        $isbn       = trim($_POST['isbn'] ?? '');
 
         if (
             $id > 0 &&
@@ -56,7 +69,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $category !== '' &&
             in_array($status, ['Tersedia', 'Dipinjam'], true)
         ) {
-            $book = new Book($id, $title, $author, $category, $status);
+            $existing = $service->findById($id);
+            $desc     = $existing ? $existing->getDescription() : '';
+            $gbId     = $existing ? $existing->getGoogleBooksId() : '';
+            $year     = $existing ? $existing->getPublishedYear() : '';
+            $pages    = $existing ? $existing->getPageCount() : 0;
+            $pub      = $existing ? $existing->getPublisher() : '';
+
+            $book = new Book(
+                $id,
+                $title,
+                $author,
+                $category,
+                $status,
+                $coverImage,
+                $desc,
+                $isbn,
+                $gbId,
+                $year,
+                $pages,
+                $pub
+            );
             $service->update($book);
             header('Location: manage-books.php?status=updated');
             exit;
@@ -109,9 +142,12 @@ $statusParam = $_GET['status'] ?? '';
             <div>
                 <div class="section-eyebrow">Manajemen Pustaka</div>
                 <h1 class="serif">Pengelolaan Koleksi E-Book</h1>
-                <p>Tambah judul baru, perbarui metadata pustaka, atau arsipkan koleksi buku.</p>
+                <p>Tambah judul baru, perbarui metadata pustaka, atau impor dari Google Books.</p>
             </div>
-            <div>
+            <div style="display: flex; gap: var(--s-3); flex-wrap: wrap;">
+                <a href="discover.php" class="btn btn-primary btn-sm">
+                    + Impor dari Google Books
+                </a>
                 <a href="index.php#katalog" class="btn btn-secondary btn-sm">
                     &larr; Lihat Katalog Publik
                 </a>
@@ -131,7 +167,7 @@ $statusParam = $_GET['status'] ?? '';
             <section class="manage-form-card" aria-labelledby="formTitle">
                 <div class="manage-card-header">
                     <h2 id="formTitle"><?= $editBook ? 'Perbarui Data Buku' : 'Tambah E-Book Baru' ?></h2>
-                    <p><?= $editBook ? 'Sunting informasi buku yang dipilih.' : 'Lengkapi atribut buku untuk katalog.' ?></p>
+                    <p><?= $editBook ? 'Sunting informasi buku yang dipilih.' : 'Lengkapi atribut buku untuk katalog lokal.' ?></p>
                 </div>
                 <div class="manage-card-body">
                     <form method="POST" action="manage-books.php" class="manage-form">
@@ -179,6 +215,30 @@ $statusParam = $_GET['status'] ?? '';
                             >
                         </div>
 
+                        <div class="form-group">
+                            <label for="bookCover" class="form-label">URL Cover Gambar (Opsional)</label>
+                            <input
+                                type="url"
+                                name="coverImage"
+                                id="bookCover"
+                                class="form-input"
+                                placeholder="https://books.google.com/..."
+                                value="<?= htmlspecialchars($editBook?->getCoverImage() ?? '') ?>"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bookIsbn" class="form-label">ISBN (Opsional)</label>
+                            <input
+                                type="text"
+                                name="isbn"
+                                id="bookIsbn"
+                                class="form-input"
+                                placeholder="Contoh: 9780135956977"
+                                value="<?= htmlspecialchars($editBook?->getIsbn() ?? '') ?>"
+                            >
+                        </div>
+
                         <?php if ($editBook): ?>
                             <div class="form-group">
                                 <label for="bookStatus" class="form-label">Status Ketersediaan</label>
@@ -211,14 +271,14 @@ $statusParam = $_GET['status'] ?? '';
             <section class="manage-table-card" aria-labelledby="tableTitle">
                 <div class="manage-card-header">
                     <h2 id="tableTitle">Inventaris E-Book (<?= count($books) ?>)</h2>
-                    <p>Daftar seluruh buku yang terdaftar di repositori sistem.</p>
+                    <p>Daftar seluruh buku yang terdaftar di repositori lokal perpustakaan.</p>
                 </div>
                 <div class="table-wrap">
                     <table class="data-table" aria-label="Tabel inventaris e-book">
                         <thead>
                             <tr>
                                 <th scope="col">ID</th>
-                                <th scope="col">Judul & Penulis</th>
+                                <th scope="col">Buku</th>
                                 <th scope="col">Kategori</th>
                                 <th scope="col">Status</th>
                                 <th scope="col" style="text-align: right;">Aksi</th>
@@ -236,11 +296,25 @@ $statusParam = $_GET['status'] ?? '';
                                     <tr>
                                         <td><code>#<?= $b->getId() ?></code></td>
                                         <td>
-                                            <div style="font-weight: 600; color: var(--text-1);">
-                                                <?= htmlspecialchars($b->getTitle()) ?>
-                                            </div>
-                                            <div style="font-size: var(--text-xs); color: var(--text-3);">
-                                                <?= htmlspecialchars($b->getAuthor()) ?>
+                                            <div style="display: flex; align-items: center; gap: var(--s-3);">
+                                                <?php if ($b->getCoverImage() !== ''): ?>
+                                                    <img
+                                                        src="<?= htmlspecialchars($b->getCoverImage()) ?>"
+                                                        alt="Cover"
+                                                        style="width: 32px; height: 44px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,.15); flex-shrink: 0;"
+                                                    >
+                                                <?php endif; ?>
+                                                <div>
+                                                    <div style="font-weight: 600; color: var(--text-1);">
+                                                        <?= htmlspecialchars($b->getTitle()) ?>
+                                                    </div>
+                                                    <div style="font-size: var(--text-xs); color: var(--text-3);">
+                                                        <?= htmlspecialchars($b->getAuthor()) ?>
+                                                        <?php if ($b->getPublishedYear() !== ''): ?>
+                                                            &bull; <?= htmlspecialchars($b->getPublishedYear()) ?>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </td>
                                         <td>

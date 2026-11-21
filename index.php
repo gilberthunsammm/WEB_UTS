@@ -256,12 +256,13 @@ sort($categories);
                     <?php else: ?>
                         <?php foreach ($books as $index => $book): ?>
                             <?php
-                            $paletteNum  = ($index % 5) + 1;
+                            $paletteNum   = ($index % 5) + 1;
                             $paletteClass = 'palette-' . $paletteNum;
-                            $isAvailable = $book->getStatus() === 'Tersedia';
-                            $titleLower  = strtolower($book->getTitle());
-                            $authorLower = strtolower($book->getAuthor());
-                            $catLower    = strtolower($book->getCategory());
+                            $isAvailable  = $book->getStatus() === 'Tersedia';
+                            $titleLower   = strtolower($book->getTitle());
+                            $authorLower  = strtolower($book->getAuthor());
+                            $catLower     = strtolower($book->getCategory());
+                            $hasCover     = !empty($book->getCoverImage());
                             ?>
                             <article
                                 class="book-card"
@@ -270,15 +271,24 @@ sort($categories);
                                 data-category="<?= htmlspecialchars($catLower) ?>"
                             >
                                 <div class="book-cover-wrap">
-                                    <div class="book-cover-art <?= $paletteClass ?>">
-                                        <span class="cover-eyebrow"><?= htmlspecialchars($book->getCategory()) ?></span>
-                                        <div class="cover-title-art">
-                                            <?= htmlspecialchars($book->getTitle()) ?>
+                                    <?php if ($hasCover): ?>
+                                        <img
+                                            src="<?= htmlspecialchars($book->getCoverImage()) ?>"
+                                            alt="Cover buku <?= htmlspecialchars($book->getTitle()) ?>"
+                                            class="book-cover-img"
+                                            loading="lazy"
+                                        >
+                                    <?php else: ?>
+                                        <div class="book-cover-art <?= $paletteClass ?>">
+                                            <span class="cover-eyebrow"><?= htmlspecialchars($book->getCategory()) ?></span>
+                                            <div class="cover-title-art">
+                                                <?= htmlspecialchars($book->getTitle()) ?>
+                                            </div>
+                                            <div class="cover-author-art">
+                                                <?= htmlspecialchars($book->getAuthor()) ?>
+                                            </div>
                                         </div>
-                                        <div class="cover-author-art">
-                                            <?= htmlspecialchars($book->getAuthor()) ?>
-                                        </div>
-                                    </div>
+                                    <?php endif; ?>
 
                                     <!-- Quick Action Overlay -->
                                     <div class="book-overlay">
@@ -291,6 +301,12 @@ sort($categories);
                                             data-category="<?= htmlspecialchars($book->getCategory()) ?>"
                                             data-status="<?= htmlspecialchars($book->getStatus()) ?>"
                                             data-palette="<?= $paletteNum ?>"
+                                            data-cover="<?= htmlspecialchars($book->getCoverImage()) ?>"
+                                            data-description="<?= htmlspecialchars($book->getDescription()) ?>"
+                                            data-publisher="<?= htmlspecialchars($book->getPublisher()) ?>"
+                                            data-year="<?= htmlspecialchars($book->getPublishedYear()) ?>"
+                                            data-pages="<?= $book->getPageCount() ?>"
+                                            data-isbn="<?= htmlspecialchars($book->getIsbn()) ?>"
                                             aria-label="Lihat detail buku <?= htmlspecialchars($book->getTitle()) ?>"
                                         >
                                             Lihat Detail &rarr;
@@ -346,6 +362,7 @@ sort($categories);
             <button type="button" class="drawer-close" id="drawerClose" aria-label="Tutup panel preview">✕</button>
         </div>
         <div class="drawer-body">
+            <img src="" alt="" id="dImgCover" class="drawer-cover-img" style="display: none;">
             <div class="drawer-cover-art palette-1" id="dCover">
                 <span class="cover-eyebrow" id="dCoverEyebrow">Kategori</span>
                 <div class="cover-title-art" id="dCoverTitle">Judul Buku</div>
@@ -365,9 +382,34 @@ sort($categories);
                     <span class="drawer-meta-label">Kategori</span>
                     <span class="drawer-meta-value" id="dCategory">-</span>
                 </div>
+                <div class="drawer-meta-row" id="dPublisherRow" style="display: none;">
+                    <span class="drawer-meta-label">Penerbit</span>
+                    <span class="drawer-meta-value" id="dPublisher">-</span>
+                </div>
+                <div class="drawer-meta-row" id="dYearRow" style="display: none;">
+                    <span class="drawer-meta-label">Tahun</span>
+                    <span class="drawer-meta-value" id="dYear">-</span>
+                </div>
+                <div class="drawer-meta-row" id="dPagesRow" style="display: none;">
+                    <span class="drawer-meta-label">Halaman</span>
+                    <span class="drawer-meta-value" id="dPages">-</span>
+                </div>
+                <div class="drawer-meta-row" id="dIsbnRow" style="display: none;">
+                    <span class="drawer-meta-label">ISBN</span>
+                    <span class="drawer-meta-value" id="dIsbn">-</span>
+                </div>
                 <div class="drawer-meta-row">
                     <span class="drawer-meta-label">Ketersediaan</span>
                     <div id="dStatus">-</div>
+                </div>
+            </div>
+
+            <div id="dDescWrap" style="margin-bottom: var(--s-6); display: none;">
+                <div style="font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--text-3); margin-bottom: var(--s-2);">
+                    Sinopsis E-Book
+                </div>
+                <div id="dDesc" style="font-size: var(--text-sm); color: var(--text-2); line-height: 1.6; max-height: 160px; overflow-y: auto; padding-right: 4px;">
+                    -
                 </div>
             </div>
 
