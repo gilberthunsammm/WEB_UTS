@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "title": "Dasar Pemrograman Web",
+        "author": "Andi Pratama",
+        "category": "Programming",
+        "status": "Tersedia"
+    },
+    {
+        "id": 2,
+        "title": "Pengantar Kecerdasan Buatan",
+        "author": "Budi Santoso",
+        "category": "Artificial Intelligence",
+        "status": "Tersedia"
+    },
+    {
+        "id": 3,
+        "title": "Dasar UI\/UX Design",
+        "author": "Siti Amelia",
+        "category": "Design",
+        "status": "Dipinjam"
+    }
+]
