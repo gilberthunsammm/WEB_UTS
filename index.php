@@ -100,7 +100,7 @@ sort($categories);
                         Jelajahi Wawasan Baru Lewat <em>Koleksi Terkurasi.</em>
                     </h1>
                     <p class="hero-desc">
-                        Akses ratusan literatur akademik, sains komputer, dan teknologi terkini dalam genggaman. Nikmati pengalaman membaca dan peminjaman instan.
+                        Temukan intisari pemikiran terbaik dunia melalui kurasi buku non-fiksi terlaris, sains, psikologi, dan teknologi. Terhubung langsung dengan jutaan literatur global untuk menunjang pertumbuhan wawasan Anda.
                     </p>
                     <div class="hero-actions">
                         <a href="#katalog" class="btn btn-primary btn-lg">
@@ -121,13 +121,13 @@ sort($categories);
                 <!-- Hero Visual Stack -->
                 <div class="hero-visual" aria-hidden="true">
                     <div class="hero-mini-book">
-                        <span class="hero-mini-book-title">Code & Algo</span>
+                        <span class="hero-mini-book-title">Best Seller</span>
                     </div>
                     <div class="hero-mini-book">
-                        <span class="hero-mini-book-title">Deep AI</span>
+                        <span class="hero-mini-book-title">Mind & Money</span>
                     </div>
                     <div class="hero-mini-book">
-                        <span class="hero-mini-book-title">Design Art</span>
+                        <span class="hero-mini-book-title">Tech & Ideas</span>
                     </div>
                 </div>
             </div>
@@ -197,7 +197,7 @@ sort($categories);
                     <div>
                         <div class="section-eyebrow">Koleksi Terpilih</div>
                         <h2 class="section-heading serif" id="catalogHeading">Katalog E-Book</h2>
-                        <p class="section-sub">Pilih dan pinjam e-book untuk menunjang studi perkuliahan Anda.</p>
+                        <p class="section-sub">Pilih dan pinjam e-book non-fiksi best seller pilihan editor untuk memperkaya wawasan Anda.</p>
                     </div>
                 </div>
 
