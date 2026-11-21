@@ -3,7 +3,15 @@
         "id": 1,
         "name": "Regs",
         "email": "KelompokWeb123@gmail.com",
-        "password": "$2y$10$9ZNFxxcR.15WqDicoSFsluD0\/J8Ah.uIG32zKqWI4dThjQBeFIkzS",
+        "password": "tes123",
+        "role": "Member",
+        "registrationDate": "2026-11-21"
+    },
+    {
+        "id": 2,
+        "name": "tes",
+        "email": "tes123@gmail.com",
+        "password": "$2y$10$eQvGw5mG0rb9NH4y.LTqLO.ecbtxnefYvQu5XqZyHzm.vVGSi9f2.",
         "role": "Member",
         "registrationDate": "2026-11-21"
     }
