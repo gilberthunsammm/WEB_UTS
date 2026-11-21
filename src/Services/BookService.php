@@ -3,8 +3,15 @@
 namespace App\Services;
 
 use App\Models\Book;
+use App\Contracts\BookRepositoryInterface;
 
-class BookService
+/**
+ * BookService — Implementasi nyata dari BookRepositoryInterface.
+ * Menyimpan data buku di storage JSON.
+ * Polymorphism via Interface: kelas ini memenuhi kontrak BookRepositoryInterface,
+ * sehingga dapat diganti dengan implementasi lain (XML, DB) tanpa mengubah kode view.
+ */
+class BookService implements BookRepositoryInterface
 {
     private string $filePath;
 

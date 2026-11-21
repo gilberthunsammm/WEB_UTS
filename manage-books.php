@@ -5,8 +5,20 @@ require_once __DIR__ . '/config/bootstrap.php';
 use App\Models\Book;
 use App\Services\BookService;
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// WAJIB LOGIN — Halaman ini memerlukan autentikasi
+if (!isset($_SESSION['user'])) {
+    $_SESSION['flash']      = 'Silakan login terlebih dahulu untuk mengakses halaman Kelola Buku.';
+    $_SESSION['flash_type'] = 'warning';
+    header('Location: login.php');
+    exit;
+}
+
+$user    = $_SESSION['user'];
 $service = new BookService();
-$message = "";
 
 // PROSES TAMBAH BUKU
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -16,44 +28,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add') {
 
         $books = $service->getAll();
-
-        $ids = array_map(
-            fn($book) => $book->getId(),
-            $books
-        );
-
+        $ids   = array_map(fn($book) => $book->getId(), $books);
         $newId = empty($ids) ? 1 : max($ids) + 1;
 
-        $title = trim($_POST['title'] ?? '');
-        $author = trim($_POST['author'] ?? '');
+        $title    = trim($_POST['title'] ?? '');
+        $author   = trim($_POST['author'] ?? '');
         $category = trim($_POST['category'] ?? '');
 
         if ($title !== '' && $author !== '' && $category !== '') {
 
-            $book = new Book(
-                $newId,
-                $title,
-                $author,
-                $category,
-                'Tersedia'
-            );
-
+            $book = new Book($newId, $title, $author, $category, 'Tersedia');
             $service->add($book);
 
             header('Location: manage-books.php?status=added');
             exit;
-
         }
     }
 
     // PROSES EDIT BUKU
     if ($action === 'update') {
 
-        $id = (int) ($_POST['id'] ?? 0);
-        $title = trim($_POST['title'] ?? '');
-        $author = trim($_POST['author'] ?? '');
+        $id       = (int) ($_POST['id'] ?? 0);
+        $title    = trim($_POST['title'] ?? '');
+        $author   = trim($_POST['author'] ?? '');
         $category = trim($_POST['category'] ?? '');
-        $status = $_POST['status'] ?? '';
+        $status   = $_POST['status'] ?? '';
 
         if (
             $id > 0 &&
@@ -62,14 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $category !== '' &&
             in_array($status, ['Tersedia', 'Dipinjam'], true)
         ) {
-            $book = new Book(
-                $id,
-                $title,
-                $author,
-                $category,
-                $status
-            );
-
+            $book = new Book($id, $title, $author, $category, $status);
             $service->update($book);
 
             header('Location: manage-books.php?status=updated');
@@ -84,7 +76,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($id > 0) {
             $service->delete($id);
-
             header('Location: manage-books.php?status=deleted');
             exit;
         }
@@ -96,217 +87,126 @@ $books = $service->getAll();
 
 // MENGAMBIL DATA BUKU UNTUK DIEDIT
 $editBook = null;
-
 if (isset($_GET['edit'])) {
     $editBook = $service->findById((int) $_GET['edit']);
 }
 
-?>
+// Pesan status operasi
+$statusMessages = [
+    'added'   => 'Buku berhasil ditambahkan ke koleksi!',
+    'updated' => 'Data buku berhasil diperbarui!',
+    'deleted' => 'Buku berhasil dihapus dari koleksi.',
+];
+$statusParam = $_GET['status'] ?? '';
 
+?>
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Kelola Buku - Digital Library</title>
-
     <link rel="stylesheet" href="assets/css/style.css">
-
-    <style>
-        .manage-section {
-            margin: 40px 0;
-        }
-
-        .manage-card {
-            background: white;
-            padding: 25px;
-            border-radius: 14px;
-            border: 1px solid #eeeaf5;
-            margin-bottom: 25px;
-        }
-
-        .manage-card input,
-        .manage-card select {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0 16px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-        }
-
-        .book-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .book-table th,
-        .book-table td {
-            padding: 13px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        .book-table th {
-            background: #f0eaff;
-            color: #7041c8;
-        }
-
-        .action-link {
-            color: #7041c8;
-            text-decoration: none;
-            margin-right: 8px;
-        }
-
-        .delete-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 9px 12px;
-            border-radius: 7px;
-            cursor: pointer;
-        }
-
-        .message {
-            background: #e5f8eb;
-            color: #18743a;
-            padding: 13px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-        }
-    </style>
 </head>
 
 <body>
 
-    <header class="navbar">
-        <div class="container nav-content">
-
-            <div class="logo">📚 Digital Library</div>
-
-            <nav class="nav-links">
-                <a href="index.php">Beranda</a>
-                <a href="manage-books.php">Kelola Buku</a>
-            </nav>
-
-        </div>
-    </header>
+    <?php require_once __DIR__ . '/templates/navbar.php'; ?>
 
     <main class="container manage-section">
 
         <h1>Pengelolaan E-book</h1>
-
-        <p style="color: #817b91; margin: 10px 0 25px;">
+        <p style="color: var(--color-text-light); margin: 10px 0 25px;">
             Tambahkan, edit, dan hapus koleksi buku perpustakaan.
+            Login sebagai: <strong><?= htmlspecialchars($user['name']) ?></strong>
         </p>
 
-        <?php if (isset($_GET['status'])): ?>
-
-            <div class="message">
-                <?php
-                $messages = [
-                    'added' => 'Buku berhasil ditambahkan!',
-                    'updated' => 'Data buku berhasil diperbarui!',
-                    'deleted' => 'Buku berhasil dihapus!'
-                ];
-
-                echo $messages[$_GET['status']] ?? 'Operasi selesai.';
-                ?>
+        <!-- PESAN STATUS OPERASI -->
+        <?php if ($statusParam && isset($statusMessages[$statusParam])): ?>
+            <div class="alert alert-success">
+                <?= htmlspecialchars($statusMessages[$statusParam]) ?>
             </div>
-
         <?php endif; ?>
 
 
         <!-- FORM TAMBAH DAN EDIT -->
-
         <section class="manage-card">
 
-            <h2>
-                <?= $editBook ? 'Edit Buku' : 'Tambah Buku Baru' ?>
-            </h2>
+            <h2><?= $editBook ? 'Edit Buku' : 'Tambah Buku Baru' ?></h2>
+            <p style="color: var(--color-text-light); font-size: 14px; margin-bottom: 20px;">
+                <?= $editBook
+                    ? 'Ubah data buku yang dipilih.'
+                    : 'Isi formulir di bawah untuk menambahkan buku baru ke katalog.' ?>
+            </p>
 
-            <form method="POST" action="manage-books.php">
+            <form method="POST" action="manage-books.php" class="manage-form">
 
-                <input
-                    type="hidden"
-                    name="action"
-                    value="<?= $editBook ? 'update' : 'add' ?>"
-                >
+                <input type="hidden" name="action" value="<?= $editBook ? 'update' : 'add' ?>">
 
                 <?php if ($editBook): ?>
+                    <input type="hidden" name="id" value="<?= $editBook->getId() ?>">
+                <?php endif; ?>
 
+                <div class="form-group">
+                    <label for="title">Judul Buku</label>
                     <input
-                        type="hidden"
-                        name="id"
-                        value="<?= $editBook->getId() ?>"
+                        type="text"
+                        name="title"
+                        id="title"
+                        placeholder="Masukkan judul buku"
+                        value="<?= htmlspecialchars($editBook?->getTitle() ?? '') ?>"
+                        required
                     >
+                </div>
 
-                <?php endif; ?>
+                <div class="form-group">
+                    <label for="author">Nama Penulis</label>
+                    <input
+                        type="text"
+                        name="author"
+                        id="author"
+                        placeholder="Masukkan nama penulis"
+                        value="<?= htmlspecialchars($editBook?->getAuthor() ?? '') ?>"
+                        required
+                    >
+                </div>
 
-                <label>Judul Buku</label>
-
-                <input
-                    type="text"
-                    name="title"
-                    placeholder="Masukkan judul buku"
-                    value="<?= htmlspecialchars($editBook?->getTitle() ?? '') ?>"
-                    required
-                >
-
-                <label>Nama Penulis</label>
-
-                <input
-                    type="text"
-                    name="author"
-                    placeholder="Masukkan nama penulis"
-                    value="<?= htmlspecialchars($editBook?->getAuthor() ?? '') ?>"
-                    required
-                >
-
-                <label>Kategori</label>
-
-                <input
-                    type="text"
-                    name="category"
-                    placeholder="Contoh: Programming"
-                    value="<?= htmlspecialchars($editBook?->getCategory() ?? '') ?>"
-                    required
-                >
+                <div class="form-group">
+                    <label for="category">Kategori</label>
+                    <input
+                        type="text"
+                        name="category"
+                        id="category"
+                        placeholder="Contoh: Programming, Design, AI"
+                        value="<?= htmlspecialchars($editBook?->getCategory() ?? '') ?>"
+                        required
+                    >
+                </div>
 
                 <?php if ($editBook): ?>
-
-                    <label>Status Buku</label>
-
-                    <select name="status">
-                        <option value="Tersedia"
-                            <?= $editBook->getStatus() === 'Tersedia' ? 'selected' : '' ?>>
-                            Tersedia
-                        </option>
-
-                        <option value="Dipinjam"
-                            <?= $editBook->getStatus() === 'Dipinjam' ? 'selected' : '' ?>>
-                            Dipinjam
-                        </option>
-                    </select>
-
+                    <div class="form-group">
+                        <label for="status">Status Buku</label>
+                        <select name="status" id="status">
+                            <option value="Tersedia" <?= $editBook->getStatus() === 'Tersedia' ? 'selected' : '' ?>>
+                                Tersedia
+                            </option>
+                            <option value="Dipinjam" <?= $editBook->getStatus() === 'Dipinjam' ? 'selected' : '' ?>>
+                                Dipinjam
+                            </option>
+                        </select>
+                    </div>
                 <?php endif; ?>
 
-                <button type="submit" class="btn">
-                    <?= $editBook ? 'Simpan Perubahan' : 'Tambah Buku' ?>
-                </button>
+                <div class="form-actions">
+                    <button type="submit" class="btn">
+                        <?= $editBook ? '💾 Simpan Perubahan' : '➕ Tambah Buku' ?>
+                    </button>
 
-                <?php if ($editBook): ?>
-
-                    <a href="manage-books.php" class="action-link">
-                        Batal Edit
-                    </a>
-
-                <?php endif; ?>
+                    <?php if ($editBook): ?>
+                        <a href="manage-books.php" class="action-link">✕ Batal Edit</a>
+                    <?php endif; ?>
+                </div>
 
             </form>
 
@@ -314,18 +214,16 @@ if (isset($_GET['edit'])) {
 
 
         <!-- DAFTAR BUKU -->
-
         <section class="manage-card">
 
             <h2>Daftar Koleksi Buku</h2>
-
-            <p style="margin: 10px 0 20px; color: #817b91;">
-                Total koleksi: <?= count($books) ?> buku
+            <p style="color: var(--color-text-light); font-size: 14px; margin-bottom: 20px;">
+                Total koleksi: <strong><?= count($books) ?></strong> buku
             </p>
 
             <div class="table-wrapper">
 
-                <table class="book-table">
+                <table class="data-table" aria-label="Daftar koleksi buku">
 
                     <thead>
                         <tr>
@@ -340,77 +238,62 @@ if (isset($_GET['edit'])) {
 
                     <tbody>
 
-                        <?php foreach ($books as $book): ?>
+                        <?php if (empty($books)): ?>
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: var(--color-text-light); padding: 30px;">
+                                    Belum ada buku tersedia.
+                                </td>
+                            </tr>
+                        <?php endif; ?>
 
+                        <?php foreach ($books as $book): ?>
                             <tr>
                                 <td><?= $book->getId() ?></td>
 
-                                <td>
-                                    <?= htmlspecialchars($book->getTitle()) ?>
-                                </td>
+                                <td><?= htmlspecialchars($book->getTitle()) ?></td>
+
+                                <td><?= htmlspecialchars($book->getAuthor()) ?></td>
+
+                                <td><?= htmlspecialchars($book->getCategory()) ?></td>
 
                                 <td>
-                                    <?= htmlspecialchars($book->getAuthor()) ?>
-                                </td>
-
-                                <td>
-                                    <?= htmlspecialchars($book->getCategory()) ?>
-                                </td>
-
-                                <td>
-                                    <?= htmlspecialchars($book->getStatus()) ?>
+                                    <?php if ($book->getStatus() === 'Tersedia'): ?>
+                                        <span class="status-returned">Tersedia</span>
+                                    <?php else: ?>
+                                        <span class="status-borrowed">Dipinjam</span>
+                                    <?php endif; ?>
                                 </td>
 
                                 <td>
                                     <a
                                         class="action-link"
                                         href="manage-books.php?edit=<?= $book->getId() ?>"
+                                        aria-label="Edit buku <?= htmlspecialchars($book->getTitle()) ?>"
                                     >
-                                        Edit
+                                        ✏️ Edit
                                     </a>
 
                                     <form
                                         method="POST"
                                         action="manage-books.php"
                                         style="display:inline;"
-                                        onsubmit="return confirm('Yakin ingin menghapus buku ini?')"
+                                        onsubmit="return confirm('Yakin ingin menghapus buku ini?\n\n<?= htmlspecialchars($book->getTitle()) ?>')"
                                     >
-
-                                        <input
-                                            type="hidden"
-                                            name="action"
-                                            value="delete"
-                                        >
-
-                                        <input
-                                            type="hidden"
-                                            name="id"
-                                            value="<?= $book->getId() ?>"
-                                        >
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="id" value="<?= $book->getId() ?>">
 
                                         <button
                                             type="submit"
                                             class="delete-btn"
+                                            aria-label="Hapus buku <?= htmlspecialchars($book->getTitle()) ?>"
                                         >
-                                            Hapus
+                                            🗑 Hapus
                                         </button>
-
                                     </form>
                                 </td>
 
                             </tr>
-
                         <?php endforeach; ?>
-
-                        <?php if (empty($books)): ?>
-
-                            <tr>
-                                <td colspan="6">
-                                    Belum ada buku tersedia.
-                                </td>
-                            </tr>
-
-                        <?php endif; ?>
 
                     </tbody>
 
@@ -422,9 +305,7 @@ if (isset($_GET['edit'])) {
 
     </main>
 
-    <footer>
-        <p>&copy; 2026 Digital Library. All Rights Reserved.</p>
-    </footer>
+    <?php require_once __DIR__ . '/templates/footer.php'; ?>
 
 </body>
 </html>

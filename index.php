@@ -26,10 +26,9 @@ $users = file_exists($userFile)
 
 $totalMembers = is_array($users) ? count($users) : 0;
 
-// Mengambil notifikasi
-$message = $_SESSION['flash'] ?? '';
+// Mengambil notifikasi flash
+$message     = $_SESSION['flash'] ?? '';
 $messageType = $_SESSION['flash_type'] ?? '';
-
 unset($_SESSION['flash'], $_SESSION['flash_type']);
 
 // PROSES PEMINJAMAN
@@ -38,31 +37,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
 
     // Memastikan pengguna sudah login
     if (!isset($_SESSION['user'])) {
-        header('Location: login.php');
+        $_SESSION['flash']      = 'Silakan login terlebih dahulu untuk meminjam buku.';
+        $_SESSION['flash_type'] = 'warning';
+        header('Location: login.php?redirect=' . urlencode('index.php#katalog'));
         exit;
     }
 
     $memberId = (int) $_SESSION['user']['id'];
-    $bookId = (int) ($_POST['book_id'] ?? 0);
+    $bookId   = (int) ($_POST['book_id'] ?? 0);
 
     if ($bookId <= 0 || $memberId <= 0) {
-
-        $_SESSION['flash'] = 'Data peminjaman tidak valid.';
+        $_SESSION['flash']      = 'Data peminjaman tidak valid.';
         $_SESSION['flash_type'] = 'error';
-
     } else {
-
         // Menjalankan proses peminjaman
-        $success = $transactionService->borrowBook(
-            $memberId,
-            $bookId
-        );
+        $success = $transactionService->borrowBook($memberId, $bookId);
 
         if ($success) {
-            $_SESSION['flash'] = 'Buku berhasil dipinjam!';
+            $_SESSION['flash']      = 'Buku berhasil dipinjam! Cek riwayat peminjaman kamu.';
             $_SESSION['flash_type'] = 'success';
         } else {
-            $_SESSION['flash'] = 'Peminjaman gagal. Buku mungkin sudah dipinjam.';
+            $_SESSION['flash']      = 'Peminjaman gagal. Buku mungkin sudah dipinjam.';
             $_SESSION['flash_type'] = 'error';
         }
     }
@@ -74,57 +69,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST'
 // Menghitung jumlah transaksi
 $totalLoans = count($transactions);
 
-?>
+// Variasi cover buku
+$coverClasses = ['cover-one', 'cover-two', 'cover-three', 'cover-four', 'cover-five'];
 
+?>
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Library - Perpustakaan Digital</title>
-
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 
 <body>
 
-    <!-- NAVBAR -->
-    <header class="navbar">
-
-        <div class="container nav-content">
-
-            <div class="logo">📚 Digital Library</div>
-
-            <nav class="nav-links">
-
-                <a href="index.php">Beranda</a>
-
-                <a href="#katalog">Katalog</a>
-
-                <?php if (isset($_SESSION['user'])): ?>
-
-                    <a href="dashboard.php">Dashboard</a>
-
-                <?php else: ?>
-
-                    <a href="login.php">Login</a>
-
-                    <a href="register.php" class="btn">
-                        Daftar Member
-                    </a>
-
-                <?php endif; ?>
-
-            </nav>
-
-        </div>
-
-    </header>
-
+    <?php require_once __DIR__ . '/templates/navbar.php'; ?>
 
     <main class="container">
 
@@ -132,11 +93,7 @@ $totalLoans = count($transactions);
         <section class="hero">
 
             <div>
-
-                <h1>
-                    Temukan Dunia Baru<br>
-                    Melalui Buku
-                </h1>
+                <h1>Temukan Dunia Baru<br>Melalui Buku</h1>
 
                 <p>
                     Selamat datang di Digital Library.
@@ -144,60 +101,38 @@ $totalLoans = count($transactions);
                     dan nikmati pengalaman membaca secara digital.
                 </p>
 
-                <a href="#katalog" class="btn">
-                    Jelajahi Koleksi
-                </a>
-
+                <a href="#katalog" class="btn">Jelajahi Koleksi</a>
             </div>
 
-            <div class="hero-icon">📖</div>
+            <div class="hero-icon" aria-hidden="true">📖</div>
 
         </section>
 
 
-        <!-- NOTIFIKASI -->
+        <!-- NOTIFIKASI FLASH -->
         <?php if ($message !== ''): ?>
-
-            <div style="
-                margin-top: 25px;
-                padding: 15px;
-                border-radius: 10px;
-                background: <?= $messageType === 'success' ? '#dcfce7' : '#fee2e2' ?>;
-                color: <?= $messageType === 'success' ? '#166534' : '#991b1b' ?>;
-            ">
+            <div class="alert alert-<?= htmlspecialchars($messageType) ?>">
                 <?= htmlspecialchars($message) ?>
             </div>
-
         <?php endif; ?>
 
 
         <!-- STATISTIK -->
-        <section class="stats">
+        <section class="stats" aria-label="Statistik Perpustakaan">
 
             <div class="stat-card">
-
                 <p>Total Koleksi Buku</p>
-
                 <h2><?= count($books) ?></h2>
-
             </div>
 
-
             <div class="stat-card">
-
                 <p>Member Terdaftar</p>
-
                 <h2><?= $totalMembers ?></h2>
-
             </div>
 
-
             <div class="stat-card">
-
                 <p>Total Peminjaman</p>
-
                 <h2><?= $totalLoans ?></h2>
-
             </div>
 
         </section>
@@ -207,13 +142,11 @@ $totalLoans = count($transactions);
         <section id="katalog">
 
             <div class="section-title">
-
                 <h2>Koleksi E-book</h2>
-
-                <span>Temukan bacaan favoritmu</span>
-
+                <span style="color: var(--color-text-light); font-size: 14px;">
+                    Temukan bacaan favoritmu
+                </span>
             </div>
-
 
             <!-- PENCARIAN -->
             <input
@@ -221,24 +154,37 @@ $totalLoans = count($transactions);
                 id="searchInput"
                 class="search-box"
                 placeholder="Cari judul atau penulis buku..."
-                aria-label="Cari buku"
+                aria-label="Cari buku berdasarkan judul atau penulis"
             >
 
+            <!-- PESAN JIKA PENCARIAN KOSONG -->
+            <div class="search-empty" id="searchEmpty" aria-live="polite">
+                <h3>📭 Buku Tidak Ditemukan</h3>
+                <p>Tidak ada buku yang cocok dengan pencarian kamu.<br>Coba kata kunci lain.</p>
+            </div>
 
             <!-- DAFTAR BUKU -->
-            <div class="book-grid">
+            <div class="book-grid" id="bookGrid">
 
                 <?php if (empty($books)): ?>
 
-                    <p>Belum ada koleksi buku tersedia.</p>
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <h3>📚 Belum Ada Koleksi</h3>
+                        <p>Belum ada koleksi buku tersedia saat ini.</p>
+                    </div>
 
                 <?php else: ?>
 
-                    <?php foreach ($books as $book): ?>
+                    <?php foreach ($books as $index => $book): ?>
 
-                        <article class="book-card">
+                        <?php
+                        $coverClass = $coverClasses[$index % count($coverClasses)];
+                        $isAvailable = $book->getStatus() === 'Tersedia';
+                        ?>
 
-                            <div class="book-cover cover-one">
+                        <article class="book-card" data-title="<?= htmlspecialchars(strtolower($book->getTitle())) ?>" data-author="<?= htmlspecialchars(strtolower($book->getAuthor())) ?>">
+
+                            <div class="book-cover <?= $coverClass ?>" aria-hidden="true">
                                 📚
                             </div>
 
@@ -246,48 +192,29 @@ $totalLoans = count($transactions);
                                 <?= htmlspecialchars($book->getCategory()) ?>
                             </span>
 
-                            <h3>
-                                <?= htmlspecialchars($book->getTitle()) ?>
-                            </h3>
+                            <span class="status-badge <?= $isAvailable ? 'available' : 'borrowed' ?>">
+                                <?= $isAvailable ? '✓ Tersedia' : '⏳ Dipinjam' ?>
+                            </span>
+
+                            <h3><?= htmlspecialchars($book->getTitle()) ?></h3>
 
                             <p class="author">
-                                Penulis:
-                                <?= htmlspecialchars($book->getAuthor()) ?>
+                                ✍️ <?= htmlspecialchars($book->getAuthor()) ?>
                             </p>
-
-                            <p>
-                                Status:
-                                <?= htmlspecialchars($book->getStatus()) ?>
-                            </p>
-
 
                             <!-- FORM PEMINJAMAN -->
                             <form method="POST" action="index.php#katalog">
 
-                                <input
-                                    type="hidden"
-                                    name="action"
-                                    value="borrow"
-                                >
-
-                                <input
-                                    type="hidden"
-                                    name="book_id"
-                                    value="<?= $book->getId() ?>"
-                                >
+                                <input type="hidden" name="action" value="borrow">
+                                <input type="hidden" name="book_id" value="<?= $book->getId() ?>">
 
                                 <button
                                     type="submit"
                                     class="btn"
-                                    style="width: 100%;"
-                                    <?= $book->getStatus() !== 'Tersedia' ? 'disabled' : '' ?>
+                                    <?= !$isAvailable ? 'disabled aria-disabled="true"' : '' ?>
+                                    style="<?= !$isAvailable ? 'opacity: 0.5; cursor: not-allowed;' : '' ?>"
                                 >
-
-                                    <?= $book->getStatus() === 'Tersedia'
-                                        ? 'Pinjam Buku'
-                                        : 'Tidak Tersedia'
-                                    ?>
-
+                                    <?= $isAvailable ? '📖 Pinjam Buku' : 'Tidak Tersedia' ?>
                                 </button>
 
                             </form>
@@ -304,21 +231,7 @@ $totalLoans = count($transactions);
 
     </main>
 
-
-    <!-- FOOTER -->
-    <footer>
-
-        <p>
-            &copy; 2026 Digital Library.
-            All Rights Reserved.
-        </p>
-
-    </footer>
-
-
-    <!-- JAVASCRIPT -->
-    <script src="assets/js/script.js"></script>
+    <?php require_once __DIR__ . '/templates/footer.php'; ?>
 
 </body>
-
 </html>

@@ -3,8 +3,14 @@
 namespace App\Services;
 
 use App\Models\Member;
+use App\Contracts\UserRepositoryInterface;
 
-class UserService
+/**
+ * UserService — Implementasi nyata dari UserRepositoryInterface.
+ * Menyimpan data pengguna di storage JSON.
+ * Polymorphism via Interface: kelas ini memenuhi kontrak UserRepositoryInterface.
+ */
+class UserService implements UserRepositoryInterface
 {
     private string $filePath;
 
