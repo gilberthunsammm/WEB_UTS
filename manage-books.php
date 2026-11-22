@@ -290,9 +290,22 @@ $statusParam = $_GET['status'] ?? '';
 
             <!-- TABLE CARD (DAFTAR BUKU) -->
             <section class="manage-table-card" aria-labelledby="tableTitle">
-                <div class="manage-card-header">
-                    <h2 id="tableTitle">Inventaris E-Book (<?= count($books) ?>)</h2>
-                    <p>Daftar seluruh buku yang terdaftar di repositori lokal perpustakaan.</p>
+                <div class="manage-card-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: var(--s-3);">
+                    <div>
+                        <h2 id="tableTitle">Inventaris E-Book (<?= count($books) ?>)</h2>
+                        <p>Daftar seluruh buku yang terdaftar di repositori lokal perpustakaan.</p>
+                        <div id="manageTableCounter" style="font-size: var(--text-xs); color: var(--text-3); margin-top: var(--s-1);">Menampilkan <?= count($books) ?> buku</div>
+                    </div>
+                    <div style="width: 100%; max-width: 260px;">
+                        <input
+                            type="text"
+                            id="manageTableSearch"
+                            class="form-input"
+                            placeholder="Cari judul, penulis, ID..."
+                            aria-label="Cari buku dalam tabel"
+                            style="padding: var(--s-2) var(--s-3); font-size: var(--text-sm);"
+                        >
+                    </div>
                 </div>
                 <div class="table-wrap">
                     <table class="data-table" aria-label="Tabel inventaris e-book">
@@ -306,6 +319,11 @@ $statusParam = $_GET['status'] ?? '';
                             </tr>
                         </thead>
                         <tbody>
+                            <tr id="manageEmptyRow" style="display: none;">
+                                <td colspan="5" style="text-align: center; color: var(--text-3); padding: var(--s-8);">
+                                    Tidak ada e-book yang cocok dengan kata kunci pencarian.
+                                </td>
+                            </tr>
                             <?php if (empty($books)): ?>
                                 <tr>
                                     <td colspan="5" style="text-align: center; color: var(--text-3); padding: var(--s-10);">

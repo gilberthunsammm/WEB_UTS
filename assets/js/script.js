@@ -586,4 +586,33 @@
       .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
   }
 
+  // ── Manage Books Table Live Search ────────────────────────
+  const manageSearch = document.getElementById('manageTableSearch');
+  const manageTable = document.querySelector('.data-table tbody');
+  const manageCounter = document.getElementById('manageTableCounter');
+  const manageEmptyRow = document.getElementById('manageEmptyRow');
+
+  if (manageSearch && manageTable) {
+    manageSearch.addEventListener('input', function () {
+      const q = this.value.trim().toLowerCase();
+      const rows = manageTable.querySelectorAll('tr:not(#manageEmptyRow)');
+      let visibleCount = 0;
+
+      rows.forEach(function (row) {
+        const text = row.textContent.toLowerCase();
+        const matches = text.includes(q);
+        row.style.display = matches ? '' : 'none';
+        if (matches) visibleCount++;
+      });
+
+      if (manageCounter) {
+        manageCounter.textContent = `Menampilkan ${visibleCount} dari ${rows.length} buku`;
+      }
+
+      if (manageEmptyRow) {
+        manageEmptyRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+      }
+    });
+  }
+
 }());
