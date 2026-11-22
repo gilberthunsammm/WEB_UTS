@@ -45,7 +45,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                     </a>
                 <?php endif; ?>
 
-                <form method="POST" action="dashboard.php" class="nav-logout-form">
+                <form method="POST" action="logout.php" class="nav-logout-form">
                     <input type="hidden" name="logout" value="1">
                     <button type="submit" class="nav-logout-btn" onclick="return confirm('Apakah kamu yakin ingin keluar?');">
                         Keluar
@@ -92,7 +92,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
                         Kelola Buku
                     </a>
                 <?php endif; ?>
-                <form method="POST" action="dashboard.php" class="nav-logout-form">
+                <form method="POST" action="logout.php" class="nav-logout-form">
                     <input type="hidden" name="logout" value="1">
                     <button type="submit" class="nav-logout-btn" onclick="return confirm('Apakah kamu yakin ingin keluar?');">
                         Keluar

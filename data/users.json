@@ -1,18 +1,26 @@
 [
     {
         "id": 1,
-        "name": "Regs",
-        "email": "KelompokWeb123@gmail.com",
-        "password": "",
+        "name": "Administrator",
+        "email": "admin@library.com",
+        "password": "$2y$10$F/PMqjOxNbm.TxWtLaCbye4OTcGDmXh8k9cVv6vdNuFm6jjPUy2.W",
+        "role": "Admin",
+        "registrationDate": "2026-11-20"
+    },
+    {
+        "id": 2,
+        "name": "Member Demo",
+        "email": "member@library.com",
+        "password": "$2y$10$hnffRnJ97WARBhwNt6mUfOtD3jJxJ3PFhOayN2itMaodOpVB3lnbC",
         "role": "Member",
         "registrationDate": "2026-11-21"
     },
     {
-        "id": 2,
-        "name": "tes",
-        "email": "tes123@gmail.com",
-        "password": "$2y$10$eQvGw5mG0rb9NH4y.LTqLO.ecbtxnefYvQu5XqZyHzm.vVGSi9f2.",
-        "role": "Member",
+        "id": 3,
+        "name": "Kelompok Web",
+        "email": "KelompokWeb123@gmail.com",
+        "password": "$2y$10$F/PMqjOxNbm.TxWtLaCbye4OTcGDmXh8k9cVv6vdNuFm6jjPUy2.W",
+        "role": "Admin",
         "registrationDate": "2026-11-21"
     }
 ]

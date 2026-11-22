@@ -2,7 +2,7 @@
 
 namespace App\Contracts;
 
-use App\Models\Member;
+use App\Models\User;
 
 /**
  * Interface UserRepositoryInterface
@@ -18,7 +18,7 @@ interface UserRepositoryInterface
     /**
      * Mencari pengguna berdasarkan alamat email.
      */
-    public function findByEmail(string $email): ?Member;
+    public function findByEmail(string $email): ?User;
 
     /**
      * Mendaftarkan member baru.
@@ -26,7 +26,7 @@ interface UserRepositoryInterface
     public function register(string $name, string $email, string $password): bool;
 
     /**
-     * Memproses login dan mengembalikan objek Member jika berhasil.
+     * Memproses login dan mengembalikan objek User jika berhasil.
      */
-    public function login(string $email, string $password): ?Member;
+    public function login(string $email, string $password): ?User;
 }

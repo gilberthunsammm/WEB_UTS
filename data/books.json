@@ -166,5 +166,19 @@
         "publishedYear": "2014",
         "pageCount": 336,
         "publisher": "Harvard University Press"
+    },
+    {
+        "id": 13,
+        "title": "Designing Data-Intensive Applications",
+        "author": "Martin Kleppmann",
+        "category": "Technology",
+        "status": "Tersedia",
+        "coverImage": "https://books.google.com/books/content?id=pL3PCwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
+        "description": "Panduan komprehensif mengenai arsitektur sistem penyimpanan modern, pemrosesan aliran data, konsensus terdistribusi, replikasi data, dan keandalan sistem berorientasi data.",
+        "isbn": "9781449373320",
+        "googleBooksId": "pL3PCwAAQBAJ",
+        "publishedYear": "2017",
+        "pageCount": 616,
+        "publisher": "O'Reilly Media"
     }
 ]

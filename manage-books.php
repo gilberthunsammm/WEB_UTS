@@ -17,6 +17,14 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
+// Otorisasi: Hanya Administrator yang berhak mengelola buku
+if (($_SESSION['user']['role'] ?? '') !== 'Admin') {
+    $_SESSION['flash']      = 'Akses ditolak. Menu pengelolaan buku hanya dapat diakses oleh Administrator.';
+    $_SESSION['flash_type'] = 'error';
+    header('Location: dashboard.php');
+    exit;
+}
+
 $user    = $_SESSION['user'];
 $service = new BookService();
 

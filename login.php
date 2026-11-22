@@ -16,6 +16,15 @@ if (isset($_SESSION['user'])) {
 $userService = new UserService();
 $error = '';
 
+$flashMessage = $_SESSION['flash'] ?? '';
+$flashType    = $_SESSION['flash_type'] ?? 'info';
+unset($_SESSION['flash'], $_SESSION['flash_type']);
+
+if (isset($_GET['status']) && $_GET['status'] === 'logged_out') {
+    $flashMessage = 'Anda telah berhasil keluar dari akun.';
+    $flashType    = 'success';
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -128,6 +137,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <h1>Masuk Akun</h1>
                 <p>Masukkan kredensial akun Anda untuk melanjutkan akses.</p>
+
+                <?php if ($flashMessage): ?>
+                    <div class="alert alert-<?= htmlspecialchars($flashType) ?>" role="alert" style="margin-bottom: var(--s-4);">
+                        <span><?= htmlspecialchars($flashMessage) ?></span>
+                    </div>
+                <?php endif; ?>
 
                 <?php if ($error): ?>
                     <div class="alert alert-error" role="alert">

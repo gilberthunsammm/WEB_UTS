@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use App\Models\Member;
+use App\Models\Admin;
 use App\Contracts\UserRepositoryInterface;
 
 /**
@@ -33,19 +35,28 @@ class UserService implements UserRepositoryInterface
     }
 
     // Mencari pengguna berdasarkan email
-    public function findByEmail(string $email): ?Member
+    public function findByEmail(string $email): ?User
     {
         foreach ($this->getAll() as $user) {
+            if (strtolower($user['email']) === strtolower($email)) {
+                $role = $user['role'] ?? 'Member';
 
-            if (
-                strtolower($user['email']) === strtolower($email)
-            ) {
+                if ($role === 'Admin') {
+                    return new Admin(
+                        (int) $user['id'],
+                        $user['name'],
+                        $user['email'],
+                        $user['password'],
+                        $user['registrationDate'] ?? date('Y-m-d')
+                    );
+                }
+
                 return new Member(
                     (int) $user['id'],
                     $user['name'],
                     $user['email'],
                     $user['password'],
-                    $user['registrationDate']
+                    $user['registrationDate'] ?? date('Y-m-d')
                 );
             }
         }
@@ -59,7 +70,6 @@ class UserService implements UserRepositoryInterface
         string $email,
         string $password
     ): bool {
-
         $users = $this->getAll();
 
         // Memeriksa email yang sudah terdaftar
@@ -69,7 +79,6 @@ class UserService implements UserRepositoryInterface
 
         // Membuat ID otomatis
         $ids = array_column($users, 'id');
-
         $newId = empty($ids) ? 1 : max($ids) + 1;
 
         // Membuat password hash
@@ -78,7 +87,7 @@ class UserService implements UserRepositoryInterface
             PASSWORD_DEFAULT
         );
 
-        // Membuat objek Member
+        // Membuat objek Member baru
         $member = new Member(
             $newId,
             $name,
@@ -97,19 +106,18 @@ class UserService implements UserRepositoryInterface
     public function login(
         string $email,
         string $password
-    ): ?Member {
+    ): ?User {
+        $user = $this->findByEmail($email);
 
-        $member = $this->findByEmail($email);
-
-        if ($member === null) {
+        if ($user === null) {
             return null;
         }
 
-        if (!$member->verifyPassword($password)) {
+        if (!$user->verifyPassword($password)) {
             return null;
         }
 
-        return $member;
+        return $user;
     }
 
     // Menyimpan data ke JSON
