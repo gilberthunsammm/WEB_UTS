@@ -615,4 +615,72 @@
     });
   }
 
+  // ── Password Strength & Confirmation Checker ─────────────
+  const regPw = document.getElementById('password');
+  const regConfirm = document.getElementById('confirm_password');
+  const strengthBar = document.getElementById('pwStrengthBar');
+  const strengthFill = document.getElementById('pwStrengthFill');
+  const strengthText = document.getElementById('pwStrengthText');
+  const confirmErr = document.getElementById('confirm_passwordError');
+
+  if (regPw && strengthBar && strengthFill && strengthText) {
+    regPw.addEventListener('input', function () {
+      const val = this.value;
+      if (!val) {
+        strengthBar.style.display = 'none';
+        return;
+      }
+      strengthBar.style.display = 'block';
+
+      let score = 0;
+      if (val.length >= 6) score++;
+      if (val.length >= 8) score++;
+      if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+
+      if (score <= 1) {
+        strengthFill.style.width = '30%';
+        strengthFill.style.backgroundColor = 'var(--danger, #ef4444)';
+        strengthText.textContent = 'Kekuatan password: Lemah';
+        strengthText.style.color = 'var(--danger, #ef4444)';
+      } else if (score <= 3) {
+        strengthFill.style.width = '65%';
+        strengthFill.style.backgroundColor = 'var(--warning, #f59e0b)';
+        strengthText.textContent = 'Kekuatan password: Cukup kuat';
+        strengthText.style.color = 'var(--warning, #f59e0b)';
+      } else {
+        strengthFill.style.width = '100%';
+        strengthFill.style.backgroundColor = 'var(--success, #10b981)';
+        strengthText.textContent = 'Kekuatan password: Sangat kuat ✓';
+        strengthText.style.color = 'var(--success, #10b981)';
+      }
+
+      if (regConfirm && regConfirm.value) {
+        checkConfirmMatch();
+      }
+    });
+  }
+
+  function checkConfirmMatch() {
+    if (!regConfirm || !confirmErr) return;
+    const p1 = regPw ? regPw.value : '';
+    const p2 = regConfirm.value;
+    if (!p2) {
+      confirmErr.textContent = '';
+      return;
+    }
+    if (p1 === p2) {
+      confirmErr.textContent = 'Password cocok ✓';
+      confirmErr.style.color = 'var(--success, #10b981)';
+    } else {
+      confirmErr.textContent = 'Konfirmasi password belum sesuai';
+      confirmErr.style.color = 'var(--danger, #ef4444)';
+    }
+  }
+
+  if (regConfirm) {
+    regConfirm.addEventListener('input', checkConfirmMatch);
+  }
+
 }());

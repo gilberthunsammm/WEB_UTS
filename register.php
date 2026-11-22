@@ -8,6 +8,10 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 if (isset($_SESSION['user'])) {
     header('Location: dashboard.php');
     exit;
@@ -21,28 +25,33 @@ $name    = '';
 $email   = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name            = trim($_POST['name'] ?? '');
-    $email           = trim($_POST['email'] ?? '');
-    $password        = $_POST['password'] ?? '';
-    $confirmPassword = $_POST['confirm_password'] ?? '';
-
-    if ($name === '' || $email === '' || $password === '') {
-        $error = 'Semua kolom formulir wajib diisi.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Format alamat email tidak valid.';
-    } elseif (strlen($password) < 6) {
-        $error = 'Password minimal harus 6 karakter.';
-    } elseif ($password !== $confirmPassword) {
-        $error = 'Konfirmasi password tidak sesuai.';
+    $csrfToken = $_POST['csrf_token'] ?? '';
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
+        $error = 'Token keamanan tidak valid. Silakan coba kembali.';
     } else {
-        $registered = $userService->register($name, $email, $password);
+        $name            = trim($_POST['name'] ?? '');
+        $email           = trim($_POST['email'] ?? '');
+        $password        = $_POST['password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
 
-        if ($registered) {
-            $success = 'Pendaftaran akun berhasil! Anda kini dapat masuk ke sistem.';
-            $name    = '';
-            $email   = '';
+        if ($name === '' || $email === '' || $password === '') {
+            $error = 'Semua kolom formulir wajib diisi.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Format alamat email tidak valid.';
+        } elseif (strlen($password) < 6) {
+            $error = 'Password minimal harus 6 karakter.';
+        } elseif ($password !== $confirmPassword) {
+            $error = 'Konfirmasi password tidak sesuai.';
         } else {
-            $error = 'Email ini sudah terdaftar sebelumnya.';
+            $registered = $userService->register($name, $email, $password);
+
+            if ($registered) {
+                $success = 'Pendaftaran akun berhasil! Anda kini dapat masuk ke sistem.';
+                $name    = '';
+                $email   = '';
+            } else {
+                $error = 'Email ini sudah terdaftar sebelumnya.';
+            }
         }
     }
 }
@@ -153,6 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <?php if (!$success): ?>
                     <form method="POST" id="registerForm" novalidate>
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                         <div class="form-group">
                             <label for="name" class="form-label">Nama Lengkap</label>
                             <input
@@ -206,6 +216,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </button>
                             </div>
                             <span class="field-error" id="passwordError"></span>
+                            <div class="pw-strength-bar" id="pwStrengthBar" style="display: none; margin-top: var(--s-2);">
+                                <div style="height: 4px; border-radius: 2px; background: var(--border-subtle, #333); overflow: hidden;">
+                                    <div id="pwStrengthFill" style="height: 100%; width: 0%; transition: width .3s, background-color .3s;"></div>
+                                </div>
+                                <div id="pwStrengthText" style="font-size: var(--text-xs); color: var(--text-3); margin-top: 4px;"></div>
+                            </div>
                         </div>
 
                         <div class="form-group">
