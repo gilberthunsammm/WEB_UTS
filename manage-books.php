@@ -28,8 +28,20 @@ if (($_SESSION['user']['role'] ?? '') !== 'Admin') {
 $user    = $_SESSION['user'];
 $service = new BookService();
 
-// PROSES TAMBAH BUKU
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// PROSES FORM
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $csrfToken = $_POST['csrf_token'] ?? '';
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
+        $_SESSION['flash']      = 'Token keamanan CSRF tidak valid. Silakan coba kembali.';
+        $_SESSION['flash_type'] = 'error';
+        header('Location: manage-books.php');
+        exit;
+    }
+
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add') {
@@ -179,6 +191,7 @@ $statusParam = $_GET['status'] ?? '';
                 </div>
                 <div class="manage-card-body">
                     <form method="POST" action="manage-books.php" class="manage-form">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                         <input type="hidden" name="action" value="<?= $editBook ? 'update' : 'add' ?>">
                         <?php if ($editBook): ?>
                             <input type="hidden" name="id" value="<?= $editBook->getId() ?>">
@@ -352,6 +365,7 @@ $statusParam = $_GET['status'] ?? '';
                                                 style="display: inline;"
                                                 onsubmit="return confirm('Apakah Anda yakin ingin menghapus buku ini dari katalog?\n\nJudul: <?= htmlspecialchars($b->getTitle()) ?>')"
                                             >
+                                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                                                 <input type="hidden" name="action" value="delete">
                                                 <input type="hidden" name="id" value="<?= $b->getId() ?>">
                                                 <button

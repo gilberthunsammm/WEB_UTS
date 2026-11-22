@@ -297,8 +297,11 @@
     if (dActions && data.bookId) {
       const avail = data.status === 'Tersedia';
       if (avail) {
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        const csrfTokenVal = csrfMeta ? csrfMeta.getAttribute('content') : '';
         dActions.innerHTML = `
           <form method="POST" action="index.php#katalog">
+            <input type="hidden" name="csrf_token" value="${escHtml(csrfTokenVal)}">
             <input type="hidden" name="action" value="borrow">
             <input type="hidden" name="book_id" value="${escHtml(data.bookId)}">
             <button type="submit" class="btn btn-primary btn-lg btn-full">

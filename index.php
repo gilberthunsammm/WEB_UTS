@@ -9,6 +9,10 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $bookService = new BookService();
 $transactionService = new TransactionService();
 
@@ -31,6 +35,13 @@ unset($_SESSION['flash'], $_SESSION['flash_type']);
 
 // PROSES PEMINJAMAN
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'borrow') {
+    $csrfToken = $_POST['csrf_token'] ?? '';
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
+        $_SESSION['flash']      = 'Token keamanan tidak valid. Silakan coba kembali.';
+        $_SESSION['flash_type'] = 'error';
+        header('Location: index.php#katalog');
+        exit;
+    }
 
     if (!isset($_SESSION['user'])) {
         $_SESSION['flash']      = 'Silakan login terlebih dahulu untuk meminjam buku.';
@@ -78,6 +89,7 @@ sort($categories);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
     <title>Digital Library — Koleksi & Peminjaman E-Book Modern</title>
     <meta name="description" content="Platform e-book library modern dengan desain minimalis editorial dan katalog terkurasi.">
     <link rel="stylesheet" href="assets/css/style.css">
@@ -331,6 +343,7 @@ sort($categories);
                                         </span>
 
                                         <form method="POST" action="index.php#katalog">
+                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                                             <input type="hidden" name="action" value="borrow">
                                             <input type="hidden" name="book_id" value="<?= $book->getId() ?>">
                                             <button
