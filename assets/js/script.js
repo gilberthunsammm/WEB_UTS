@@ -683,4 +683,76 @@
     regConfirm.addEventListener('input', checkConfirmMatch);
   }
 
+  // ── Custom Interactive Confirmation Modal ────────────────
+  function showConfirmModal(message, title, onConfirm) {
+    const existing = document.getElementById('customConfirmModal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'customConfirmModal';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;';
+
+    const box = document.createElement('div');
+    box.style.cssText = 'background:var(--surface-1,#1e2024);border:1px solid var(--border-subtle,#333);border-radius:var(--radius-lg,12px);padding:var(--s-6,1.5rem);max-width:420px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,0.4);color:var(--text-1,#fff);';
+
+    box.innerHTML = `
+      <div style="font-size:var(--text-lg,1.15rem);font-weight:700;margin-bottom:var(--s-2,0.5rem);">
+        ${escHtml(title || 'Konfirmasi Tindakan')}
+      </div>
+      <p style="font-size:var(--text-sm,0.875rem);color:var(--text-2,#aaa);line-height:1.5;margin-bottom:var(--s-6,1.25rem);white-space:pre-line;">
+        ${escHtml(message)}
+      </p>
+      <div style="display:flex;gap:var(--s-3,0.75rem);justify-content:flex-end;">
+        <button type="button" class="btn btn-secondary btn-sm" id="modalCancelBtn">Batal</button>
+        <button type="button" class="btn btn-primary btn-sm" id="modalConfirmBtn" style="background:var(--danger,#ef4444);border-color:var(--danger,#ef4444);">Lanjutkan</button>
+      </div>
+    `;
+
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    const cancelBtn = box.querySelector('#modalCancelBtn');
+    const confirmBtn = box.querySelector('#modalConfirmBtn');
+
+    function close() {
+      overlay.remove();
+    }
+
+    cancelBtn.addEventListener('click', close);
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) close();
+    });
+
+    confirmBtn.addEventListener('click', function () {
+      close();
+      if (typeof onConfirm === 'function') onConfirm();
+    });
+  }
+
+  document.addEventListener('submit', function (e) {
+    const form = e.target;
+    const confirmMsg = form.getAttribute('data-confirm');
+    if (confirmMsg && !form.dataset.confirmed) {
+      e.preventDefault();
+      const title = form.getAttribute('data-confirm-title') || 'Konfirmasi';
+      showConfirmModal(confirmMsg, title, function () {
+        form.dataset.confirmed = 'true';
+        form.submit();
+      });
+    }
+  });
+
+  // ── Auto trigger toast for flash alerts ───────────────────
+  const flashAlert = document.querySelector('.alert[role="alert"], .alert[role="status"]');
+  if (flashAlert && window.showToast) {
+    const alertText = flashAlert.querySelector('span:not(.alert-icon), div:not(.alert-icon)')?.textContent?.trim() || flashAlert.textContent.trim();
+    if (alertText) {
+      const isSuccess = flashAlert.classList.contains('alert-success');
+      const isError = flashAlert.classList.contains('alert-error');
+      const isWarning = flashAlert.classList.contains('alert-warning');
+      const type = isSuccess ? 'success' : (isError ? 'error' : (isWarning ? 'warning' : 'default'));
+      window.showToast(alertText, type, 4000);
+    }
+  }
+
 }());

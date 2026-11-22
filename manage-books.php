@@ -381,7 +381,8 @@ $statusParam = $_GET['status'] ?? '';
                                                 method="POST"
                                                 action="manage-books.php"
                                                 style="display: inline;"
-                                                onsubmit="return confirm('Apakah Anda yakin ingin menghapus buku ini dari katalog?\n\nJudul: <?= htmlspecialchars($b->getTitle()) ?>')"
+                                                data-confirm="Apakah Anda yakin ingin menghapus buku ini dari katalog perpustakaan?"
+                                                data-confirm-title="Hapus E-Book"
                                             >
                                                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
                                                 <input type="hidden" name="action" value="delete">

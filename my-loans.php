@@ -183,7 +183,8 @@ foreach ($transactions as $transaction) {
                                                 method="POST"
                                                 action="my-loans.php"
                                                 style="display: inline;"
-                                                onsubmit="return confirm('Apakah Anda yakin ingin mengembalikan buku ini sekarang?\n\nJudul: <?= htmlspecialchars($t->getBookTitle()) ?>')"
+                                                data-confirm="Apakah Anda yakin ingin mengembalikan buku ini sekarang?"
+                                                data-confirm-title="Pengembalian E-Book"
                                             >
                                                 <input type="hidden" name="transaction_id" value="<?= $t->getId() ?>">
                                                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
